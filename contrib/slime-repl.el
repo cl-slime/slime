@@ -1060,13 +1060,28 @@ If the `last-command' was a history navigation command use the
 same search pattern for this command.
 Otherwise use the current input as search pattern."
   (interactive)
-  (slime-repl-history-replace 'backward (slime-repl-history-pattern t)))
+  (let ((slime-repl-eli-history-behavior nil))
+    (slime-repl-history-replace 'backward (slime-repl-history-pattern t))))
+
+(defun slime-repl-previous-input-nomatch ()
+  "Cycle backwards through input history. Unlike `slime-repl-previous-input`,
+do not use the current input as a search pattern: simply walk the history."
+  (interactive)
+  (slime-repl-history-replace 'backward nil))
 
 (defun slime-repl-next-input ()
   "Cycle forwards through input history.
 See `slime-repl-previous-input'."
   (interactive)
-  (slime-repl-history-replace 'forward (slime-repl-history-pattern t)))
+  (let ((slime-repl-eli-history-behavior nil))
+    (slime-repl-history-replace 'forward (slime-repl-history-pattern t))))
+
+(defun slime-repl-next-input-nomatch ()
+  "Cycle forwards through input history.
+See `slime-repl-previous-input-nomatch'."
+  (interactive)
+  (slime-repl-history-replace 'forward nil))
+
 
 (defun slime-repl-forward-input ()
   "Cycle forwards through input history."
