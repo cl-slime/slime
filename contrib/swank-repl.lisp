@@ -45,6 +45,7 @@
    wait-for-event
    make-tag
    thread-for-evaluation
+   socket-quest
 
    authenticate-client
    encode-message
@@ -134,8 +135,7 @@ DEDICATED-OUTPUT INPUT OUTPUT IO REPL-RESULTS"
 Return an output stream suitable for writing program output.
 
 This is an optimized way for Lisp to deliver output to Emacs."
-  (let ((socket (create-socket *loopback-interface*
-                               *dedicated-output-stream-port*))
+  (let ((socket (socket-quest *dedicated-output-stream-port* nil))
         (ef (find-external-format-or-lose coding-system)))
     (unwind-protect
          (let ((port (local-port socket)))
@@ -194,13 +194,14 @@ This is an optimized way for Lisp to deliver output to Emacs."
     (initialize-streams-for-connection conn `(:coding-system ,coding-system))
     (with-struct* (connection. @ conn)
       (setf (@ env)
-            `((*standard-output* . ,(@ user-output))
-              (*standard-input*  . ,(@ user-input))
-              (*trace-output*    . ,(or (@ trace-output) (@ user-output)))
-              (*error-output*    . ,(@ user-output))
-              (*debug-io*        . ,(@ user-io))
-              (*query-io*        . ,(@ user-io))
-              (*terminal-io*     . ,(@ user-io))))
+	    `((*standard-input*  . ,(@ user-input))
+	      ,@(unless *globally-redirect-io*
+		  `((*standard-output* . ,(@ user-output))
+		    (*trace-output*    . ,(or (@ trace-output) (@ user-output)))
+		    (*error-output*    . ,(@ user-output))
+		    (*debug-io*        . ,(@ user-io))
+		    (*query-io*        . ,(@ user-io))
+		    (*terminal-io*     . ,(@ user-io))))))
       (maybe-redirect-global-io conn)
       (add-hook *connection-closed-hook* 'update-redirection-after-close)
       (typecase conn

@@ -64,20 +64,12 @@ current repl's (as per slime-output-buffer) window."
   :group 'slime-repl)
 
 (defface slime-repl-prompt-face
-  (if (slime-face-inheritance-possible-p)
-      '((t (:inherit font-lock-keyword-face)))
-    '((((class color) (background light)) (:foreground "Purple"))
-      (((class color) (background dark)) (:foreground "Cyan"))
-      (t (:weight bold))))
+    '((t (:inherit font-lock-keyword-face)))
   "Face for the prompt in the SLIME REPL."
   :group 'slime-repl)
 
 (defface slime-repl-output-face
-  (if (slime-face-inheritance-possible-p)
-      '((t (:inherit font-lock-string-face)))
-    '((((class color) (background light)) (:foreground "RosyBrown"))
-      (((class color) (background dark)) (:foreground "LightSalmon"))
-      (t (:slant italic))))
+    '((t (:inherit font-lock-string-face)))
   "Face for Lisp output in the SLIME REPL."
   :group 'slime-repl)
 
@@ -453,8 +445,6 @@ joined together."))
   ("\M-r" 'slime-repl-previous-matching-input)
   ("\M-s" 'slime-repl-next-matching-input)
   ("\C-c\C-c" 'slime-interrupt)
-  ("\t" 'slime-indent-and-complete-symbol)
-  ("\M-\t" 'slime-complete-symbol)
   (" " 'slime-space)
   ((string slime-repl-shortcut-dispatch-char) 'slime-handle-repl-shortcut)
   ("\C-c\C-o" 'slime-repl-clear-output)
@@ -494,6 +484,8 @@ joined together."))
   (lisp-mode-variables t)
   (set (make-local-variable 'lisp-indent-function)
        'common-lisp-indent-function)
+  (slime-setup-completion)
+  (set (make-local-variable 'tab-always-indent) 'complete)
   (setq font-lock-defaults nil)
   (setq mode-name "REPL")
   (setq slime-current-thread :repl-thread)
@@ -505,7 +497,6 @@ joined together."))
               'slime-repl-safe-save-merged-history
               'append t))
   (add-hook 'kill-emacs-hook 'slime-repl-save-all-histories)
-  (slime-setup-command-hooks)
   ;; At the REPL, we define beginning-of-defun and end-of-defun to be
   ;; the start of the previous prompt or next prompt respectively.
   ;; Notice the interplay with SLIME-REPL-BEGINNING-OF-DEFUN.
@@ -1623,12 +1614,12 @@ expansion will be added to the REPL's history.)"
 (defun sldb-copy-down-to-repl (frame-id var-id)
   "Evaluate the frame var at point via the REPL (to set `*')."
   (interactive (list (sldb-frame-number-at-point) (sldb-var-number-at-point)))
-  (slime-repl-copy-down-to-repl 'swank-backend:frame-var-value frame-id var-id))
+  (slime-repl-copy-down-to-repl 'swank/backend:frame-var-value frame-id var-id))
 
 (defun sldb-insert-frame-call-to-repl ()
   "Insert a call to a frame at point."
   (interactive)
-  (let ((call (slime-eval `(swank-backend::frame-call
+  (let ((call (slime-eval `(swank/backend::frame-call
                             ,(sldb-frame-number-at-point)))))
     (slime-switch-to-output-buffer)
     (if (>= (point) slime-repl-prompt-start-mark)

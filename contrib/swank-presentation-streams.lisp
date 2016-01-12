@@ -10,7 +10,7 @@
 
 (in-package :swank)
 
-(eval-when (:compile-toplevel :load-toplevel)
+(eval-when (:compile-toplevel :load-toplevel :execute)
   (swank-require :swank-presentations))
 
 ;; This file contains a mechanism for printing to the slime repl so
@@ -65,7 +65,7 @@ be sensitive and remember what object it is in the repl if predicate is true"
 	(funcall ,continue)))))
 
 ;;; Get pretty printer patches for SBCL at load (not compile) time.
-#+sbcl
+#+#:disable-dangerous-patching ; #+sbcl
 (eval-when (:load-toplevel)
   (handler-bind ((simple-error
 		  (lambda (c)
@@ -295,7 +295,7 @@ says that I am starting to print an object with this id. The second says I am fi
     (fdefinition 'sb-impl::%print-unreadable-object))
   (sb-ext:without-package-locks 
     (setf (fdefinition 'sb-impl::%print-unreadable-object)
-	  (lambda (object stream type identity body)
+	  (lambda (object stream type identity &optional body)
 	    (presenting-object object stream
 	      (funcall *saved-%print-unreadable-object* 
 		       object stream type identity body))))
